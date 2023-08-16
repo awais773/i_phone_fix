@@ -39,25 +39,12 @@ class AuthController extends Controller
 
             ], 400);
         }
-        $randomId = rand(1000000, 9999999);
-        $locations = $request->input('location');
-       $locationString = json_encode($locations); 
         $user = User::create([
-            // 'id' => $randomId, // Assign the random ID
             'name' => $request->name,
             'last_name' => $request->last_name,
-            'city' => $request->city,
             'email' => $request->email,
-            'country' => $request->country,
-            'mobile_number' => $request->mobile_number,
-            'location' => $locationString, // Store locations as a string
-            'type' => $request->type,
-            'social_type' => $request->social_type,
-            'isVerify' => 'false',
             'password' => Hash::make($request->password)
         ]);
-       $email = 'https://besttutorforyou.com/Login?type=verified';
-        Mail::to($request->input('email'))->send(new OtpVerificationMail($email));
         $token = $user->createToken('Token')->accessToken;
         if (!$token) {
             return response()->json(['success' => false, 'message' => 'Failed to generate token'], 422);
@@ -67,139 +54,35 @@ class AuthController extends Controller
             'message' => 'login successfull',
             'user' => $user,
             'token' => $token,
-            'user_id'=>$user->id
         ], 200);
     }
 
 
-//  public function login(Request $request)
-//     {
-//         $data = [
-//             'email' => $request->email,
-//             'password' => $request->password,
-//             'type' => $request->type,
-//         ];
-
-//         $credentials = [
-//             'email' => $request->email,
-//             'type' => $request->type,
-//             'social_type' => $request->social_type,
-//         ];
-      
-//         if (auth()->attempt($data)) {
-//             $token = auth()->user()->createToken('Token')->accessToken;
-//             return response()->json([
-//                 'success' => true,
-//                 'message' => 'login successfull',
-//                 'user' => User::find(Auth::id()),
-//                 'token' => $token,
-//             ], 200);
-//         }elseif ($check = User::where($credentials)->first()) {
-//             $token = $check->createToken('Token')->accessToken;
-//             return response()->json([
-//                 'success' => true,
-//                 'message' => 'Login successful',
-//                 'user' => User::find($check->id),
-//                 'token' => $token,
-//             ], 200);
-//         }
-//         else {
-//             return response()->json([
-//                 'success' => false,
-//                 'error' => 'Unauthorized',
-//                 'message' => 'Please Check your Credentials'
-//             ], 401);
-//         }
-//     }
-
-public function login(Request $request)
-{
-    $credentials = [
-        'email' => $request->email,
-        'password' => $request->password,
-        'type' => $request->type,
-    ];
-
-    $user = User::where('email', $request->email)
-                 ->where('type', $request->type)
-                 ->first();
-    if ($user && ($user->social_type === 'both' || $user->social_type === 'google')) {
-        $token = $user->createToken('Token')->accessToken;
-        $user->skills = json_decode($user->skills); // Decode the JSON-encoded skills property
-        // if ($request->has('isVerify')) {
-        //     $user->isVerify = $request->input('isVerify');
-        // }
-        // $user->save();
-        if ($request->has('isVerify')) {
-            $isVerify = $request->input('isVerify');
-            if ($isVerify === "true") {
-                $user->isVerify = 'true';
-                Mail::to($user->email)->send(new TutorSuperbMail($user));
-            } else {
-                // $user->isVerify = false;
-            }
-        }       
-        $user->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-            'user' => $user,
-            'token' => $token,
-        ], 200);
-    } elseif (auth()->attempt($credentials)) {
-        $user = auth()->user();
-        $token = $user->createToken('Token')->accessToken;
-        $user->skills = json_decode($user->skills); // Decode the JSON-encoded skills property
-        if ($request->has('isVerify')) {
-            $isVerify = $request->input('isVerify');
-            if ($isVerify === "true") {
-                $user->isVerify = true;
-                Mail::to($user->email)->send(new TutorSuperbMail($user));
-            } else {
-                // $user->isVerify = false;
-            }
-        }       
-        $user->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-            'user' => $user,
-            'token' => $token,
-        ], 200);
-    } else {
-        return response()->json([
-            'success' => false,
-            'error' => 'Unauthorized',
-            'message' => 'Please check your credentials',
-        ], 401);
-    }
-}
-
-  public function newlogin(Request $request)
+ public function login(Request $request)
     {
-        $credentials = $request->only('id', 'password');
-        if (Auth::attempt($credentials)) {
-            // Authentication successful
-            $user = auth()->user();
-            $token = $user->createToken('Token')->accessToken;
-            $user->skills = json_decode($user->skills); // Decode the JSON-encoded skills property
+        $data = [
+            'email' => $request->email,
+            'password' => $request->password,
+        ];
 
+        if (auth()->attempt($data)) {
+            $token = auth()->user()->createToken('Token')->accessToken;
             return response()->json([
                 'success' => true,
-                'message' => 'Login successful',
-                'user' => $user,
+                'message' => 'login successfull',
+                'user' => User::find(Auth::id()),
                 'token' => $token,
-            ]);
-        } else {
+            ], 200);
+        }
+        else {
             return response()->json([
                 'success' => false,
                 'error' => 'Unauthorized',
-                'message' => 'Invalid ID or password',
-            ]);
+                'message' => 'Please Check your Credentials'
+            ], 401);
         }
     }
+
 
 
    
@@ -310,61 +193,9 @@ public function login(Request $request)
             if (!empty($request->input('location'))) {
                 $obj->location = $request->input('location');
             }
-            if (!empty($request->input('information'))) {
-                $obj->information = $request->input('information');
-            }
             if (!empty($request->input('type'))) {
                 $obj->type = $request->input('type');
             }
-            if (!empty($request->input('age'))) {
-                $obj->age = $request->input('age');
-            } 
-             if (!empty($request->input('skills'))) {
-                $obj->skills =  json_encode($request->input('skills'));
-            }
-             if (!empty($request->input('twitter_link'))) {
-                $obj->twitter_link = $request->input('twitter_link'); 
-            }
-            if (!empty($request->input('nationality'))) {
-                $obj->nationality = $request->input('nationality');
-            }
-           if (!empty($request->input('service'))) {
-                $obj->service =  json_encode($request->input('service'));
-            }
-            if (!empty($request->input('address'))) {
-                $obj->address = $request->input('address');
-            }
-             if (!empty($request->input('city'))) {
-                $obj->city = $request->input('city');
-            }
-           if (!empty($request->input('volunteer'))) {
-                $obj->volunteer = $request->input('volunteer');
-            }
-              if (!empty($request->input('qualification_id'))) {
-                $obj->qualification_id = $request->input('qualification_id');
-            }
-            if (!empty($request->input('date_birth'))) {
-                $obj->date_birth = $request->input('date_birth');
-            }
-             if (!empty($request->input('facbook_link'))) {
-                $obj->facbook_link = $request->input('facbook_link');
-            }
-            if (!empty($request->input('insta_link'))) {
-                $obj->insta_link = $request->input('insta_link');
-            }
-            if (!empty($request->input('youtub_link'))) {
-                $obj->youtub_link = $request->input('youtub_link');
-            }
-            if (!empty($request->input('pack_price_1'))) {
-                $obj->pack_price_1 = $request->input('pack_price_1');
-            }
-            if (!empty($request->input('pack_price_2'))) {
-                $obj->pack_price_2 = $request->input('pack_price_2');
-            }
-            if (!empty($request->input('webcam_price'))) {
-                $obj->webcam_price = $request->input('webcam_price');
-            }
-
             if ($obj->save()) {
                 $this->data = $obj;
                 $this->success = true;
@@ -408,26 +239,26 @@ public function login(Request $request)
     }
     
     
-    
-      public function PasswordChanged(Request $request)
+    public function passwordChanged(Request $request)
     {
         $this->validate($request, [
             'old_password' => 'required',
+            'password' => 'required|min:8', // Add validation for the new password and password confirmation
         ]);
-    
+
         $user = Auth::user();
         if ($user) {
             // Check if the old password is correct
             if (Hash::check($request->old_password, $user->password)) {
-                $user['password'] = Hash::make($request->password);
+                $user->password = Hash::make($request->password);
                 $user->save();
-    
+
                 return response()->json(['success' => true, 'message' => 'Success! Password has been changed']);
             } else {
                 return response()->json(['success' => false, 'message' => 'Failed! Old password is incorrect']);
             }
         }
-    
+
         return response()->json(['success' => false, 'message' => 'Failed! Something went wrong']);
     }
 
