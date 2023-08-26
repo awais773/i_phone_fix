@@ -31,7 +31,15 @@ Route::get('/student',[App\Http\Controllers\api\AuthController::class,'student']
 
   // user //
 
-Route::post('register',[App\Http\Controllers\api\AuthController::class,'register']);
+Route::post('addUser',[App\Http\Controllers\api\AuthController::class,'register']);
+Route::get('userGet',[App\Http\Controllers\api\AuthController::class,'user']);
+Route::get('show/{id}',[App\Http\Controllers\api\AuthController::class,'show']);
+Route::put('/update/profile/{id}', [App\Http\Controllers\api\AuthController::class, 'updateProfile']);
+Route::delete('/delete/{id}', [App\Http\Controllers\api\AuthController::class, 'delete']);
+
+
+
+
 Route::post('login',[App\Http\Controllers\api\AuthController::class,'login']);
 Route::post('newlogin',[App\Http\Controllers\api\AuthController::class,'newlogin']);
 Route::post('/forgotPassword', [App\Http\Controllers\api\AuthController::class, 'forgotPassword']);
@@ -52,6 +60,25 @@ Route::post('/otp/verify', [App\Http\Controllers\api\AuthController::class, 'otp
     ///  contact
 Route::apiResource('contacts', App\Http\Controllers\api\ContactController::class);
 
+// admission 
+
+Route::apiResource('admission', App\Http\Controllers\api\AdmissionController::class);
+Route::apiResource('sale', App\Http\Controllers\api\SaleController::class);
+Route::apiResource('color', App\Http\Controllers\api\ColorController::class);
+Route::apiResource('course', App\Http\Controllers\api\CourseController::class);
+Route::apiResource('brand', App\Http\Controllers\api\BrandController::class);
+Route::apiResource('purchase', App\Http\Controllers\api\PurchaseController::class);
+Route::apiResource('product', App\Http\Controllers\api\ProductController::class);
+
+   ////
+Route::apiResource('fault', App\Http\Controllers\api\FaultController::class);
+Route::get('faultDependecy',[App\Http\Controllers\api\FaultController::class,'faultDependecy']);
+
+
+    //
+Route::apiResource('customer', App\Http\Controllers\api\CustomerController::class);
+Route::get('dependecy',[App\Http\Controllers\api\CustomerController::class,'Dependecy']);
+
 
 
 
@@ -60,7 +87,6 @@ Route::post('/PasswordChanged ', [App\Http\Controllers\api\AuthController::class
 Route::post('/update/AdminProfile', [App\Http\Controllers\api\AdminAuthController::class, 'adminProfile']);
 Route::get('/logout',[App\Http\Controllers\api\AuthController::class,'logout']);
 Route::get('AllUser',[App\Http\Controllers\api\MessageController::class,'AllUser']);
-Route::put('/update/profile', [App\Http\Controllers\api\AuthController::class, 'updateProfile']);
 
 
 

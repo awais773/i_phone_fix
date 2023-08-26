@@ -41,8 +41,9 @@ class AuthController extends Controller
         }
         $user = User::create([
             'name' => $request->name,
-            'last_name' => $request->last_name,
             'email' => $request->email,
+            'role' => $request->role,
+            'profile_picture' => $request->profile_picture,
             'password' => Hash::make($request->password)
         ]);
         $token = $user->createToken('Token')->accessToken;
@@ -155,28 +156,16 @@ class AuthController extends Controller
     }
 
 
-   public function updateProfile(Request $request,)
+   public function updateProfile(Request $request,$id)
     {
-        $id = $request->user()->id;
         $obj = User::find($id);       
          if ($obj) {
-            if (!empty($request->input('cover_image'))) {
-                $obj->cover_image = $request->input('cover_image');
+            if (!empty($request->input('profile_picture'))) {
+                $obj->profile_picture = $request->input('profile_picture');
             }
-            if (!empty($request->input('image'))) {
-                $obj->image = $request->input('image');
-            }
+        
             if (!empty($request->input('name'))) {
                 $obj->name = $request->input('name');
-            }
-            if (!empty($request->input('last_name'))) {
-                $obj->last_name = $request->input('last_name');
-            }
-            if (!empty($request->input('price'))) {
-                $obj->price = $request->input('price');
-            }
-            if (!empty($request->input('expert'))) {
-                $obj->expert = $request->input('expert');
             }
             if (!empty($request->input('email'))) {
                 $obj->email = $request->input('email');
@@ -184,14 +173,8 @@ class AuthController extends Controller
             if (!empty($request->input('password'))) {
                 $obj->password = Hash::make($request->input('password'));
             }
-            if (!empty($request->input('mobile_number'))) {
-                $obj->mobile_number = $request->input('mobile_number');
-            }
-            if (!empty($request->input('country'))) {
-                $obj->country = $request->input('country');
-            }
-            if (!empty($request->input('location'))) {
-                $obj->location = $request->input('location');
+            if (!empty($request->input('role'))) {
+                $obj->role = $request->input('role');
             }
             if (!empty($request->input('type'))) {
                 $obj->type = $request->input('type');
@@ -262,9 +245,9 @@ class AuthController extends Controller
         return response()->json(['success' => false, 'message' => 'Failed! Something went wrong']);
     }
 
-    public function instructor()
+    public function user()
     {
-        $data = User::with('qualification','cources.class:id,name')->where('type','1')->get();
+        $data = User::get();
         if (is_null($data)) {
             return response()->json('data not found');
         }
@@ -275,51 +258,6 @@ class AuthController extends Controller
         ]);
     }
     
-    // public function instructor()
-    // {
-    //     $users = User::with(['qualification', 'cources.class'])
-    //         ->where('type', '1')
-    //         ->get();
-    
-    //     if ($users->isEmpty()) {
-    //         return response()->json('Data not found');
-    //     }
-    
-    //     $userData = [];
-    //     foreach ($users as $user) {
-    //         $classData = [];
-    //         foreach ($user->cources as $cource) {
-    //             $classData[] = [
-    //                 'class_id' => $cource->class->id,
-    //                 'class_name' => $cource->class->name,
-    //             ];
-    //         }
-    
-    //         $userData[] = [
-    //             'user_id' => $user->id,
-    //             'class_data' => $classData,
-    //         ];
-    //     }
-    
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'All data retrieved successfully',
-    //         'data' => $userData,
-    //     ]);
-    // }
-
-    public function student()
-    {
-        $data = User::with('role')->where('type','2')->get();
-        if (is_null($data)) {
-            return response()->json('data not found',);
-        }
-        return response()->json([
-            'success' => true,
-            'message' => 'All Data susccessfull',
-            'data' => $data,
-        ]);
-    }
 
     public function delete($id)
     {
@@ -361,40 +299,17 @@ class AuthController extends Controller
                     ]);
                 }  
             }
+                        
             
-            
-             public function getTeacher()
+            public function show($id)
             {
-                $user = Auth::with('role')->guard('api')->user();
-                $users = User::whereIn('id', $user)->get();
-                if (is_null($users)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'data not found'
-                    ],);
-                }
-                return response()->json([
-                    'success' => true,
-                    'message' => 'All Data susccessfull',
-                    'data' => $users,
-                ]);
-            }
-            
-            
-            public function getOneTeacher($id)
-            {
-                $user = User::with('qualification')->where('id', $id)->first();
+                $user = User::where('id', $id)->first();
                 if (is_null($user)) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Data not found'
                     ], 404);
                 }
-                
-                $user->location = json_decode($user->location); 
-              $user->skills = json_decode($user->skills);
-                // Decode the JSON-encoded location string
-                
                 return response()->json([
                     'success' => true,
                     'message' => 'Data retrieval successful',
@@ -422,32 +337,6 @@ class AuthController extends Controller
                 ]);
             }
 
-
-
-            public function handle(Request $request)
-            {
-                $token = $request->header('Authorization');
-                if (!$token) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'Unauthorized'
-                    ], 401);
-                }
-            
-                // Extract the token from the header (remove 'Bearer ' prefix)
-                $token = str_replace('Bearer ', '', $token);
-            
-                // Check if the token is valid
-                // $user = User::where('api_token', $token)
-                $user = Auth::guard('api')->user();
-                if (!$user) {
-                    return response()->json(['error' => 'Invalid token'], 401);
-                }
-                return response()->json([
-                    'success' => true,
-                    'message' => 'valid token',
-                  ]);
-            }
             
                 
 
